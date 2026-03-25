@@ -24,7 +24,7 @@ def read_news(country: str, months: int = 24) -> dict:
 
     print(f"[News] Fetching news for '{country}' after {published_after}")
 
-    response = requests.get(url, params=params, timeout=10)
+    response = requests.get(url, params=params, timeout=10, verify=False)
 
     if response.status_code == 200:
         return response.json()
@@ -47,7 +47,7 @@ def read_wiki(wiki_title: str) -> dict:
 
     print(f"[Wiki] Fetching Wikipedia article: '{wiki_title}'")
 
-    response = requests.get(url, params=params, timeout=10)
+    response = requests.get(url, params=params, timeout=10, verify=False)
 
     if response.status_code == 200:
         data  = response.json()

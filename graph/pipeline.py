@@ -103,10 +103,12 @@ class ETLPipeline:
         correlated = result.get("correlated_data") or {}
 
         return ETLReport(
-            query          = result.get("query", state.get("query", "")),
-            answer         = result.get("final_answer", ""),
-            wiki_title     = metadata.get("wiki_title"),
-            event          = metadata.get("event"),
-            trend          = correlated.get("trend"),
-            recommendation = result.get("recommendation"),
+            query                 = result.get("query", state.get("query", "")),
+            wiki_title            = metadata.get("wiki_title"),
+            event                 = metadata.get("event"),
+            trend                 = correlated.get("trend"),
+            historical_background = result.get("historical_background"),
+            current_situation     = result.get("current_situation"),
+            trend_assessment      = result.get("trend_assessment"),
+            summary               = result.get("summary"),
         )

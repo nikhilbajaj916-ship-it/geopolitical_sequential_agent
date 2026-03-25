@@ -39,8 +39,10 @@ class PipelineState(TypedDict, total=False):
     context: str
 
     # ── Output ──
-    final_answer:   str
-    recommendation: str
+    historical_background: str
+    current_situation:     str
+    trend_assessment:      str
+    summary:               str
 
     # ── Logs ──
     messages: List

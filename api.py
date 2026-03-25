@@ -59,10 +59,7 @@ def analyze(req: QueryRequest) -> ETLReport:
     query = req.query.strip()
 
     if not query:
-        return ETLReport(
-            query  = "",
-            answer = "Query cannot be empty.",
-        )
+        return ETLReport(query="", summary="Query cannot be empty.")
 
     state  = get_initial_state(query)
     result = pipeline.run(state)

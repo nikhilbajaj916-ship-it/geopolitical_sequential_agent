@@ -32,10 +32,10 @@ class ControllerAgent:
             elapsed = round(time.time() - start, 2)
             print("[Controller Agent] BLOCKED — empty query")
             return {
-                "route":        "unsupported",
-                "final_answer": "Error: Query is empty. Please provide a query.",
-                "timing":       {"controller": elapsed},
-                "error":        ["empty_query"],
+                "route":   "unsupported",
+                "summary": "Error: Query is empty. Please provide a query.",
+                "timing":  {"controller": elapsed},
+                "error":   ["empty_query"],
             }
 
         # ── Pre-check 2: query too short ──
@@ -43,10 +43,10 @@ class ControllerAgent:
             elapsed = round(time.time() - start, 2)
             print("[Controller Agent] BLOCKED — query too short")
             return {
-                "route":        "unsupported",
-                "final_answer": f"Error: Query '{query}' is too short. Please be more specific.",
-                "timing":       {"controller": elapsed},
-                "error":        ["query_too_short"],
+                "route":   "unsupported",
+                "summary": f"Error: Query '{query}' is too short. Please be more specific.",
+                "timing":  {"controller": elapsed},
+                "error":   ["query_too_short"],
             }
 
         # ── Step 3: detect country ──
@@ -113,8 +113,8 @@ class GeneralHandler:
         print(f"[General Handler] Done ({elapsed}s)")
 
         return {
-            "final_answer": response,
-            "timing":       {"general_handler": elapsed},
+            "summary": response,
+            "timing":  {"general_handler": elapsed},
         }
 
 
@@ -125,7 +125,7 @@ class GeneralHandler:
 def unsupported_handler(state: PipelineState) -> dict:
     print("[Unsupported Handler] Query blocked — returning error answer.")
     return {
-        "final_answer": state.get("final_answer", "Query could not be processed."),
+        "summary": state.get("summary", "Query could not be processed."),
     }
 
 

@@ -51,7 +51,7 @@ class OrchestratorAgent:
                 "- historical_background : major events/trends over past 1-2 years\n"
                 "- current_situation     : what is happening now per recent news\n"
                 "- trend_assessment      : positive/negative/stable and why\n"
-                "- recommendation        : one-line overall geopolitical outlook"
+                "- summary               : one-line overall geopolitical outlook"
             )),
         ]
 
@@ -61,16 +61,12 @@ class OrchestratorAgent:
         elapsed = round(time.time() - start, 2)
         print(f"[Orchestrator Agent] Done ({elapsed}s)")
 
-        # ── Return state update ──
         return {
-            "final_answer":   (
-                f"HISTORICAL BACKGROUND\n{output.historical_background}\n\n"
-                f"CURRENT SITUATION\n{output.current_situation}\n\n"
-                f"TREND ASSESSMENT\n{output.trend_assessment}\n\n"
-                f"RECOMMENDATION\n{output.recommendation}"
-            ),
-            "recommendation": output.recommendation,
-            "timing":         {"orchestrator": elapsed},
+            "historical_background": output.historical_background,
+            "current_situation":     output.current_situation,
+            "trend_assessment":      output.trend_assessment,
+            "summary":               output.summary,
+            "timing":                {"orchestrator": elapsed},
         }
 
 

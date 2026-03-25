@@ -63,26 +63,21 @@ def transform_news(news_raw: dict) -> list:
 
     result = []
     for a in articles:
-        text = f"{a.get('title', '')} {a.get('description', '')}".strip()
+        parts = [a.get("title", ""), a.get("description", ""), a.get("content", "")]
+        text  = " ".join(p for p in parts if p).strip()
         if text:
             result.append({
-                "text":     text,
-                "url":      a.get("url", ""),
+                "text":      text,
+                "url":       a.get("url", ""),
                 "published": a.get("published_at", ""),
-                "entities": extract_entities(text),
             })
 
     return result
 
 
 def transform_wiki(wiki_raw: dict) -> dict:
-    title   = wiki_raw.get("title", "")
-    extract = wiki_raw.get("extract", "")
-    text    = f"{title} {extract}".strip()
-
     return {
-        "text":     text,
-        "entities": extract_entities(text),
+        "text": wiki_raw.get("extract", "").strip(),
     }
 
 

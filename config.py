@@ -1,27 +1,30 @@
 # ─────────────────────────────────────────────
 # config.py
 #
-# Purpose : Central configuration (env-based)
+# Purpose : Central configuration
 # ─────────────────────────────────────────────
 
-from local_settings import (
-    AGENT_TEMPERATURE,
-    AGENT_TIMEOUT,
-    CACHE_TTL,
-    DEFAULT_QUERY,
-    EMBEDDING_MODEL,
-    NEWS_API_KEY,
-    OLLAMA_BASE_URL,
-    OLLAMA_MODEL,
-    RATE_LIMIT_DELAY,
-    VECTOR_TOP_K,
-    WIKI_BASE_URL,
-)
+NEWS_API_KEY       = "pooakdx2t3M5KAArBddk7aCAcAWqfiRUJmt3QGan"
+WIKI_BASE_URL      = "https://en.wikipedia.org/api/rest_v1/page/summary"
+
+OLLAMA_MODEL       = "llama3.2"
+OLLAMA_BASE_URL    = "http://localhost:11434"
+
+AGENT_TEMPERATURE  = 0.3
+AGENT_TIMEOUT      = 120
+
+EMBEDDING_MODEL    = "llama3.2"
+
+CACHE_TTL          = 300
+RATE_LIMIT_DELAY   = 1.0
+
+VECTOR_TOP_K       = 2
+
+DEFAULT_QUERY      = "future of India market"
 
 
 # ─────────────────────────────────────────────
-# ─────────────────────────────────────────────
-# VALIDATION (IMPORTANT)
+# VALIDATION
 # ─────────────────────────────────────────────
 
 def validate_config():
@@ -43,8 +46,6 @@ def validate_config():
 
 if __name__ == "__main__":
     print("\nConfig Loaded\n")
-
     validate_config()
-
     print("MODEL:", OLLAMA_MODEL)
     print("BASE URL:", OLLAMA_BASE_URL)

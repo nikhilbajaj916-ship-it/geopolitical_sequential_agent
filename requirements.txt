@@ -1,0 +1,19 @@
+
+langchain
+langgraph
+
+# LLM (Ollama)
+
+langchain-ollama
+
+# Vector DB
+faiss-cpu
+langchain-community
+
+
+# Utilities
+requests
+
+fastapi
+pydantic
+uvicorn

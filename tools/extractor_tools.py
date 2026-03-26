@@ -48,7 +48,8 @@ def read_wiki(wiki_title: str) -> dict:
 
     print(f"[Wiki] Fetching Wikipedia article: '{wiki_title}'")
 
-    response = requests.get(url, params=params, timeout=10, verify=False)
+    headers = {"User-Agent": "GeoIntelBot/1.0 (research project; Python/requests)"}
+    response = requests.get(url, params=params, headers=headers, timeout=10, verify=False)
 
     if response.status_code == 200:
         data  = response.json()

@@ -4,15 +4,7 @@
 # Purpose : Fetch financial data from World Bank API + yfinance
 # ─────────────────────────────────────────────
 
-import os
-import ssl
 import requests
-
-# Disable SSL verification for corporate/restricted networks (must be before yfinance import)
-os.environ["CURL_CA_BUNDLE"]     = ""
-os.environ["REQUESTS_CA_BUNDLE"] = ""
-ssl._create_default_https_context = ssl._create_unverified_context
-
 import yfinance as yf
 from config import COUNTRY_CODES, STOCK_INDICES
 

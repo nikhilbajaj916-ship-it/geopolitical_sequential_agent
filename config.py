@@ -5,6 +5,15 @@
 # ─────────────────────────────────────────────
 
 import os
+import ssl
+import urllib3
+
+# ── Global SSL bypass for corporate/restricted networks ──
+ssl._create_default_https_context = ssl._create_unverified_context
+os.environ["CURL_CA_BUNDLE"]      = ""
+os.environ["REQUESTS_CA_BUNDLE"]  = ""
+os.environ["SSL_CERT_FILE"]       = ""
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 NEWS_API_KEY    = os.getenv("NEWS_API_KEY",    "pooakdx2t3M5KAArBddk7aCAcAWqfiRUJmt3QGan")
 WIKI_BASE_URL   = "https://en.wikipedia.org/api/rest_v1/page/summary"

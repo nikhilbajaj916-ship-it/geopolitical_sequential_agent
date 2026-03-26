@@ -7,19 +7,27 @@
 
 import os
 import ssl
+import urllib.request
 import urllib3
 
-# 1. Python ssl
+# 1. Python ssl context (covers urllib, urllib3, etc.)
 ssl._create_default_https_context = ssl._create_unverified_context
 
-# 2. urllib3
+# 2. urllib.request — used by ChromaDB DefaultEmbeddingFunction for model download
+_ssl_ctx = ssl.create_default_context()
+_ssl_ctx.check_hostname = False
+_ssl_ctx.verify_mode    = ssl.CERT_NONE
+urllib.request.install_opener(
+    urllib.request.build_opener(urllib.request.HTTPSHandler(context=_ssl_ctx))
+)
+
+# 3. urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# 3. HuggingFace hub (used by ChromaDB DefaultEmbeddingFunction)
+# 4. HuggingFace hub env vars
 os.environ["HF_HUB_DISABLE_SSL_VERIFICATION"] = "1"
-os.environ["HUGGINGFACE_HUB_VERBOSITY"]        = "warning"
 
-# 4. Monkey-patch requests.Session — covers ALL libraries using requests
+# 5. Monkey-patch requests.Session (covers News API, Wiki, World Bank)
 import requests
 _orig_request = requests.Session.request
 def _patched_request(self, method, url, **kwargs):
@@ -27,7 +35,7 @@ def _patched_request(self, method, url, **kwargs):
     return _orig_request(self, method, url, **kwargs)
 requests.Session.request = _patched_request
 
-# 5. curl_cffi (used by yfinance)
+# 6. curl_cffi (used by yfinance)
 try:
     import curl_cffi.requests as _curl
     _orig_init = _curl.Session.__init__

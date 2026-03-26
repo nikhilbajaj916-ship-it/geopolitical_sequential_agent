@@ -3,6 +3,7 @@
 #
 # Purpose : Pre-load all 20 countries into ChromaDB
 # Run     : python data_loader.py
+import ssl_patch  # noqa: F401 — must be first
 # ─────────────────────────────────────────────
 
 import time

@@ -1,6 +1,7 @@
 # ─────────────────────────────────────────────
 # api.py
 # ─────────────────────────────────────────────
+import ssl_patch  # noqa: F401 — must be first
 
 import uvicorn
 from fastapi import FastAPI, HTTPException

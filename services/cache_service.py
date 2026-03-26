@@ -6,6 +6,7 @@
 
 # ── Imports ──
 import time
+import threading
 from typing import Any, Optional
 from config import CACHE_TTL
 
@@ -18,34 +19,32 @@ class CacheService:
 
     def __init__(self, ttl: int = CACHE_TTL):
         self.store = {}
-        self.ttl = ttl
+        self.ttl   = ttl
+        self._lock = threading.Lock()
 
     # ── Get value from cache ──
     def get(self, key: str) -> Optional[Any]:
-        data = self.store.get(key)
-
-        if data:
-            value, timestamp = data
-
-            # check expiry
-            if time.time() - timestamp < self.ttl:
-                print(f"[Cache] HIT: {key}")
-                return value
-
-            # expired → remove
-            print(f"[Cache] EXPIRED: {key}")
-            self.store.pop(key, None)
-
+        with self._lock:
+            data = self.store.get(key)
+            if data:
+                value, timestamp = data
+                if time.time() - timestamp < self.ttl:
+                    print(f"[Cache] HIT: {key}")
+                    return value
+                print(f"[Cache] EXPIRED: {key}")
+                self.store.pop(key, None)
         return None
 
     # ── Set value in cache ──
     def set(self, key: str, value: Any):
-        self.store[key] = (value, time.time())
+        with self._lock:
+            self.store[key] = (value, time.time())
         print(f"[Cache] SET: {key}")
 
     # ── Clear all cache (optional) ──
     def clear(self):
-        self.store.clear()
+        with self._lock:
+            self.store.clear()
         print("[Cache] CLEARED")
 
 

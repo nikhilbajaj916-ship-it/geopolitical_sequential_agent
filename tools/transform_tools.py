@@ -2,66 +2,65 @@
 # tools/transform_tools.py
 # ─────────────────────────────────────────────
 
-# ── Top 20 geopolitical countries ──
-COUNTRIES = [
-    "united states", "usa", "china", "russia", "india",
-    "germany", "united kingdom", "uk", "france", "japan",
-    "brazil", "south korea", "iran", "saudi arabia", "israel",
-    "turkey", "pakistan", "north korea", "ukraine", "australia",
-    "canada", "italy",
+import re
+from config import TOP_20_COUNTRIES, COUNTRY_WIKI_TITLES
+
+# ── Build lowercase → config-name mapping from config (single source of truth) ──
+_LOWER_TO_CONFIG: dict = {c.lower(): c for c in TOP_20_COUNTRIES}
+
+# Common aliases not covered by lowercase of config names
+_LOWER_TO_CONFIG.update({
+    "united states": "USA",
+    "america":       "USA",
+    "u.s.":          "USA",
+    "united kingdom": "UK",
+    "britain":       "UK",
+    "great britain": "UK",
+    "south korea":   "South Korea",
+    "saudi arabia":  "Saudi Arabia",
+})
+
+# Sorted longest first so multi-word names match before single words
+COUNTRIES = sorted(_LOWER_TO_CONFIG.keys(), key=len, reverse=True)
+
+EVENTS = [
+    "election", "war", "growth", "crisis", "inflation",
+    "sanctions", "conflict", "protest", "deal", "trade",
+    "startup", "investment", "roi", "gdp",
 ]
-
-# ── Wikipedia-friendly title mapping ──
-WIKI_TITLES = {
-    "united states": "United_States",
-    "usa":           "United_States",
-    "china":         "China",
-    "russia":        "Russia",
-    "india":         "India",
-    "germany":       "Germany",
-    "united kingdom":"United_Kingdom",
-    "uk":            "United_Kingdom",
-    "france":        "France",
-    "japan":         "Japan",
-    "brazil":        "Brazil",
-    "south korea":   "South_Korea",
-    "iran":          "Iran",
-    "saudi arabia":  "Saudi_Arabia",
-    "israel":        "Israel",
-    "turkey":        "Turkey",
-    "pakistan":      "Pakistan",
-    "north korea":   "North_Korea",
-    "ukraine":       "Ukraine",
-    "australia":     "Australia",
-    "canada":        "Canada",
-    "italy":         "Italy",
-}
-
-EVENTS = ["election", "war", "growth", "crisis", "inflation",
-          "sanctions", "conflict", "protest", "deal", "trade"]
 
 
 def extract_entities(text: str) -> dict:
     lower = text.lower()
 
-    # Multi-word countries first (order matters)
-    country = next((c for c in COUNTRIES if c in lower), None)
-    event   = next((e for e in EVENTS   if e in lower), None)
+    # Check uppercase abbreviations first (US, UK) to avoid false positives like "tell us"
+    if re.search(r'\bUS\b', text):
+        country_raw = "usa"
+    elif re.search(r'\bUK\b', text):
+        country_raw = "uk"
+    else:
+        # Word-boundary match on lowercase
+        country_raw = next(
+            (c for c in COUNTRIES if re.search(r'\b' + re.escape(c) + r'\b', lower)),
+            None
+        )
 
-    display = country.title() if country else None
+    event = next((e for e in EVENTS if e in lower), None)
+
+    config_name = _LOWER_TO_CONFIG.get(country_raw) if country_raw else None
+    wiki_title  = COUNTRY_WIKI_TITLES.get(config_name) if config_name else None
 
     return {
-        "country":    display,
-        "country_raw": country,          # lowercase key for lookups
-        "wiki_title": WIKI_TITLES.get(country, display) if country else None,
-        "event":      event,
+        "country":     config_name,
+        "country_raw": country_raw,
+        "wiki_title":  wiki_title,
+        "event":       event,
     }
 
 
 def transform_news(news_raw: dict) -> list:
     articles = news_raw.get("data", [])
-
-    result = []
+    result   = []
     for a in articles:
         parts = [a.get("title", ""), a.get("description", ""), a.get("content", "")]
         text  = " ".join(p for p in parts if p).strip()
@@ -71,7 +70,6 @@ def transform_news(news_raw: dict) -> list:
                 "url":       a.get("url", ""),
                 "published": a.get("published_at", ""),
             })
-
     return result
 
 

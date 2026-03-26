@@ -32,7 +32,7 @@ class LLMService:
     # ── Structured Pydantic output via with_structured_output ──
     def generate_structured(self, prompt, output_schema: Type[T]) -> T:
         messages = [HumanMessage(content=prompt)] if isinstance(prompt, str) else prompt
-        return cast(T, self.llm.with_structured_output(output_schema).invoke(messages))
+        return cast(T, self.llm.with_structured_output(output_schema, method="json_schema").invoke(messages))
 
 
 # ─────────────────────────────────────────────

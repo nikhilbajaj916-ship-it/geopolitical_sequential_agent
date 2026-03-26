@@ -1,64 +1,83 @@
 # ─────────────────────────────────────────────
 # tools/vector_tools.py
 #
-# Purpose : Build vector DB + RAG search (combined)
+# Purpose : Chunking + ChromaDB indexing + RAG search
 # ─────────────────────────────────────────────
 
 import time
-from langchain_community.vectorstores import FAISS
 from state import PipelineState
-from services.embedding_service import embedding_service
-from config import VECTOR_TOP_K
+from services.db_service import db_service
+from config import CHUNK_SIZE, CHUNK_OVERLAP, VECTOR_TOP_K
 
 
-# ─────────────────────────────────────────────
-# LOW-LEVEL HELPERS
-# ─────────────────────────────────────────────
+def chunk_text(text: str, size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list:
+    """Split text into overlapping chunks."""
+    if not text:
+        return []
+    chunks = []
+    start  = 0
+    while start < len(text):
+        chunks.append(text[start:start + size])
+        start += size - overlap
+    return [c for c in chunks if c.strip()]
 
-def build_vector_db(texts: list, embeddings) -> FAISS:
-    return FAISS.from_texts(texts, embeddings)
 
+def index_country_data(country: str, news_items: list, wiki_text: str, financial_text: str = ""):
+    """Chunk and upsert all data for a country into ChromaDB."""
+    texts     = []
+    metadatas = []
+    ids       = []
 
-def search_vector(db: FAISS, query: str, k: int) -> list:
-    return db.similarity_search(query, k=k)
+    # News chunks
+    for i, item in enumerate(news_items):
+        for j, chunk in enumerate(chunk_text(item.get("text", ""))):
+            texts.append(chunk)
+            metadatas.append({"country": country, "source": "news", "date": item.get("published", "")})
+            ids.append(f"{country}_news_{i}_{j}")
 
+    # Wiki chunks
+    for j, chunk in enumerate(chunk_text(wiki_text)):
+        texts.append(chunk)
+        metadatas.append({"country": country, "source": "wiki", "date": ""})
+        ids.append(f"{country}_wiki_{j}")
 
-# ─────────────────────────────────────────────
-# PIPELINE NODE  (replaces vector + rag agents)
-# ─────────────────────────────────────────────
+    # Financial text (single entry)
+    if financial_text.strip():
+        texts.append(financial_text)
+        metadatas.append({"country": country, "source": "financial", "date": ""})
+        ids.append(f"{country}_financial")
+
+    if texts:
+        db_service.upsert(texts, metadatas, ids)
+        print(f"[Vector] Indexed {len(texts)} chunks for {country}")
+
 
 def vector_rag_node(state: PipelineState) -> dict:
-    start = time.time()
-
-    print("[Vector+RAG] Starting...")
-
-    transformed = state.get("transformed_data") or {}
+    """Index fresh data (if any) then search ChromaDB."""
+    start       = time.time()
     query       = state.get("query", "")
+    country     = (state.get("metadata") or {}).get("country")
+    transformed = state.get("transformed_data") or {}
 
-    # ── Collect texts from news + wiki ──
-    news_items = transformed.get("news", [])
-    wiki_item  = transformed.get("wiki") or {}
+    # Index only if fresh data was fetched (not from cache) or forced latest
+    cache_hit = state.get("cache_hit", False)
+    is_latest = state.get("is_latest", False)
+    if transformed and (not cache_hit or is_latest):
+        news_items = transformed.get("news", [])
+        wiki_text  = (transformed.get("wiki") or {}).get("text", "")
+        fin_text   = transformed.get("financial_text", "")
+        index_country_data(country or "", news_items, wiki_text, fin_text)
 
-    texts = [item["text"] for item in news_items if item.get("text")]
-    if wiki_item.get("text"):
-        texts.append(wiki_item["text"])
+    print(f"[Vector+RAG] Searching for '{query}' country={country}")
 
-    if not texts:
-        print("[Vector+RAG] No texts — skipping.")
-        elapsed = round(time.time() - start, 2)
-        return {"context": "", "retrieved_docs": [], "timing": {"vector_rag": elapsed}}
-
-    # ── Build DB + search in one step ──
-    db   = build_vector_db(texts, embedding_service.get())
-    docs = search_vector(db, query, k=VECTOR_TOP_K)
-
-    context = "\n".join(d.page_content for d in docs)
+    docs    = db_service.search(query, country=country, n_results=VECTOR_TOP_K)
+    context = "\n\n".join(docs)
     elapsed = round(time.time() - start, 2)
 
-    print(f"[Vector+RAG] Indexed {len(texts)} chunks, retrieved {len(docs)} ({elapsed}s)")
+    print(f"[Vector+RAG] Retrieved {len(docs)} chunks ({elapsed}s)")
 
     return {
-        "context":       context,
+        "context":        context,
         "retrieved_docs": docs,
-        "timing":        {"vector_rag": elapsed},
+        "timing":         {**state.get("timing", {}), "vector_rag": elapsed},
     }

@@ -6,18 +6,19 @@
 
 # ── Imports ──
 from langchain_ollama import OllamaEmbeddings
-from config import EMBEDDING_MODEL
+from config import OLLAMA_MODEL, OLLAMA_BASE_URL
 
 
 # ─────────────────────────────────────────────
-# EMBEDDING SERVICE
+# EMBEDDING SERVICE  (unused — db_service uses DefaultEmbeddingFunction)
 # ─────────────────────────────────────────────
 
 class EmbeddingService:
 
     def __init__(self):
         self.embeddings = OllamaEmbeddings(
-            model=EMBEDDING_MODEL
+            model=OLLAMA_MODEL,
+            base_url=OLLAMA_BASE_URL,
         )
 
     # ── Return embedding object ──

@@ -1,0 +1,15 @@
+# Ignore virtual environment (dependencies installed fresh inside container)
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE files
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore

@@ -1,19 +1,16 @@
-
 langchain
 langgraph
-
-# LLM (Ollama)
-
 langchain-ollama
-
-# Vector DB
-faiss-cpu
 langchain-community
 
+# Vector DB
+chromadb
+
+# Financial data
+yfinance
 
 # Utilities
 requests
-
 fastapi
 pydantic
 uvicorn

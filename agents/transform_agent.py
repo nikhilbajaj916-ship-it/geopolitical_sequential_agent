@@ -4,11 +4,8 @@
 
 import time
 from state import PipelineState
-from tools.transform_tools import (
-    transform_news,
-    transform_wiki,
-    merge_sources,
-)
+from tools.transform_tools import transform_news, transform_wiki, merge_sources
+from tools.financial_tools import financial_to_text
 
 
 class TransformAgent:
@@ -18,21 +15,24 @@ class TransformAgent:
 
         print("[Transform Agent] Starting...")
 
-        news_raw = state.get("news_raw") or {}
-        wiki_raw = state.get("wiki_raw") or {}
+        news_raw       = state.get("news_raw") or {}
+        wiki_raw       = state.get("wiki_raw") or {}
+        financial_data = state.get("financial_data") or {}
+        country        = (state.get("metadata") or {}).get("country", "")
 
-        news = transform_news(news_raw)
-        wiki = transform_wiki(wiki_raw)
-
+        news   = transform_news(news_raw)
+        wiki   = transform_wiki(wiki_raw)
         merged = merge_sources(news, wiki)
 
-        elapsed = round(time.time() - start, 2)
+        # Add financial text so vector_rag can index it
+        merged["financial_text"] = financial_to_text(country, financial_data)
 
-        print(f"[Transform Agent] Done ({elapsed}s)")
+        elapsed = round(time.time() - start, 2)
+        print(f"[Transform Agent] Done — {len(news)} news items ({elapsed}s)")
 
         return {
             "transformed_data": merged,
-            "timing": {"transform": elapsed},
+            "timing":           {**state.get("timing", {}), "transform": elapsed},
         }
 
 

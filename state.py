@@ -15,33 +15,34 @@ from typing import TypedDict, Any, List, Dict
 class PipelineState(TypedDict, total=False):
 
     # ── Input ──
-    query: str
+    query:      str
+    query_type: str       # "general" | "financial"
+    is_latest:  bool      # True if user asked for latest/fresh data
 
-    # ── Routing 
+    # ── Routing ──
     route: str
 
     # ── Metadata ──
     metadata: Dict
 
     # ── Extracted Data ──
-    news_raw: Any
-    wiki_raw: Any
+    news_raw:       Any
+    wiki_raw:       Any
+    financial_data: Dict  # raw numbers from World Bank + yfinance
 
     # ── Processed Data ──
     transformed_data: Dict
-    correlated_data: Dict
-
-    # ── Vector DB ──
-    vector_db: Any
+    correlated_data:  Dict
 
     # ── RAG Context ──
     retrieved_docs: List
-    context: str
+    context:        str
 
     # ── Output ──
     historical_background: str
     current_situation:     str
     trend_assessment:      str
+    financial_summary:     str
     summary:               str
 
     # ── Logs ──

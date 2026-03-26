@@ -27,7 +27,7 @@ class CorrelationAgent:
 
         return {
             "correlated_data": result,
-            "timing": {"correlation": elapsed},
+            "timing": {**state.get("timing", {}), "correlation": elapsed},
         }
 
 

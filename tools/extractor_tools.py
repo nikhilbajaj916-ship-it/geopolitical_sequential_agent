@@ -1,7 +1,8 @@
 # ─────────────────────────────────────────────
 # tools/extractor_tools.py
 # ─────────────────────────────────────────────
-
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import requests
 from datetime import datetime, timedelta
 from config import NEWS_API_KEY

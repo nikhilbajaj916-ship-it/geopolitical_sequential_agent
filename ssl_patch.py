@@ -9,22 +9,31 @@ import os
 import ssl
 import urllib3
 
-# Python ssl
+# 1. Python ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
-# requests / urllib3
-os.environ["CURL_CA_BUNDLE"]     = ""
-os.environ["REQUESTS_CA_BUNDLE"] = ""
-os.environ["SSL_CERT_FILE"]      = ""
+# 2. urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# curl_cffi (used by yfinance)
+# 3. HuggingFace hub (used by ChromaDB DefaultEmbeddingFunction)
+os.environ["HF_HUB_DISABLE_SSL_VERIFICATION"] = "1"
+os.environ["HUGGINGFACE_HUB_VERBOSITY"]        = "warning"
+
+# 4. Monkey-patch requests.Session — covers ALL libraries using requests
+import requests
+_orig_request = requests.Session.request
+def _patched_request(self, method, url, **kwargs):
+    kwargs.setdefault("verify", False)
+    return _orig_request(self, method, url, **kwargs)
+requests.Session.request = _patched_request
+
+# 5. curl_cffi (used by yfinance)
 try:
     import curl_cffi.requests as _curl
-    _orig = _curl.Session.__init__
-    def _patched(self, *args, **kwargs):
+    _orig_init = _curl.Session.__init__
+    def _patched_init(self, *args, **kwargs):
         kwargs.setdefault("verify", False)
-        _orig(self, *args, **kwargs)
-    _curl.Session.__init__ = _patched
+        _orig_init(self, *args, **kwargs)
+    _curl.Session.__init__ = _patched_init
 except Exception:
     pass

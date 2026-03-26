@@ -7,6 +7,7 @@
 
 import os
 import ssl
+import socket
 import urllib.request
 import urllib3
 
